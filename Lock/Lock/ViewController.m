@@ -11,6 +11,9 @@
 #import <libkern/OSAtomic.h>
 
 @interface ViewController ()
+{
+    int _ticketsCount;
+}
 
 @end
 
@@ -23,8 +26,8 @@
     // Do any additional setup after loading the view, typically from a nib.
     
     [self testLockButton:0];
+    [self sycnButton:1];
 }
-
 
 - (void)didReceiveMemoryWarning {
     [super didReceiveMemoryWarning];
@@ -32,8 +35,10 @@
 }
 
 #pragma mark -
-#pragma mark -- Action
+#pragma mark -- Test
+
 #define CycleTime (1024*1024*32)
+
 - (void)testAction {
     NSTimeInterval time = [NSDate date].timeIntervalSince1970;
     
@@ -101,8 +106,6 @@
     NSLog(@"%f : work time of OSSpinLock",[NSDate date].timeIntervalSince1970-time);
 }
 
-#pragma mark -
-#pragma mark -- UI
 - (void)testLockButton:(int)index {
     float y = 20 + index * 50;
     
@@ -113,5 +116,61 @@
     [button addTarget:self action:@selector(testAction) forControlEvents:UIControlEventTouchUpInside];
     [self.view addSubview:button];
 }
+
+#pragma mark -
+#pragma mark -- Sync
+- (void)sycnButton:(int)index {
+    float y = 20 + index * 50;
+    
+    UIButton *button = [UIButton buttonWithType:UIButtonTypeCustom];
+    [button setFrame:CGRectMake(0, y, self.view.frame.size.width, 40)];
+    [button setTitle:@"Sync" forState:UIControlStateNormal];
+    [button setBackgroundColor:[UIColor purpleColor]];
+    [button addTarget:self action:@selector(sycnAction) forControlEvents:UIControlEventTouchUpInside];
+    [self.view addSubview:button];
+}
+
+- (void)sycnAction {
+    //设置票的数量为5
+    _ticketsCount = 5;
+    
+    NSLog(@"Start tickets count = %d, Thread:%@",_ticketsCount,[NSThread currentThread]);
+    
+    dispatch_async(dispatch_get_global_queue(DISPATCH_QUEUE_PRIORITY_DEFAULT, 0), ^{
+        [self saleTickets];
+    });
+    
+    dispatch_async(dispatch_get_global_queue(DISPATCH_QUEUE_PRIORITY_DEFAULT, 0), ^{
+        [self saleTickets];
+    });
+}
+
+- (void)saleTickets {
+    while (YES) {
+        /*
+         注意点:
+         1.加锁的代码尽量少
+         2.添加的OC对象必须在多个线程中都是同一对象
+         3.优点是不需要显式的创建锁对象，便可以实现锁的机制。
+         4.@synchronized块会隐式的添加一个异常处理例程来保护代码，该处理例程会在异常抛出的时候自动的释放互斥锁。所以如果不想让隐式的异常处理例程带来额外的开销，你可以考虑使用锁对象。
+         */
+        
+        //这里参数添加一个OC对象，一般使用self
+        @synchronized(self) {
+            [NSThread sleepForTimeInterval:1];
+            if (_ticketsCount > 0) {
+                _ticketsCount--;
+                NSLog(@"Tickets = %d, Thread:%@",_ticketsCount,[NSThread currentThread]);
+            }
+            else {
+                NSLog(@"Clear  Thread:%@",[NSThread currentThread]);
+                break;
+            }
+        }
+    }
+}
+
+#pragma mark -
+#pragma mark --
 
 @end
