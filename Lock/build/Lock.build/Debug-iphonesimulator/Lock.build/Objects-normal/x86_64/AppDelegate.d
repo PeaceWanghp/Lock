@@ -1,2 +1,2 @@
-dependencies: /Users/peace/Desktop/Lock/Lock/Lock/AppDelegate.m \
-  /Users/peace/Desktop/Lock/Lock/Lock/AppDelegate.h
+dependencies: /Users/peace/Desktop/GitHub/Lock/Lock/Lock/AppDelegate.m \
+  /Users/peace/Desktop/GitHub/Lock/Lock/Lock/AppDelegate.h

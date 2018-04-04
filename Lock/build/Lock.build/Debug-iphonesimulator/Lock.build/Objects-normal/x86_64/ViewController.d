@@ -1,2 +1,2 @@
-dependencies: /Users/peace/Desktop/Lock/Lock/Lock/ViewController.m \
-  /Users/peace/Desktop/Lock/Lock/Lock/ViewController.h
+dependencies: /Users/peace/Desktop/GitHub/Lock/Lock/Lock/ViewController.m \
+  /Users/peace/Desktop/GitHub/Lock/Lock/Lock/ViewController.h
