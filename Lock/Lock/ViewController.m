@@ -81,7 +81,7 @@
         [self semaphoreAction];
     }
     else if ([string isEqualToString:@"OSSpinLock"]) {
-        
+        [self spinAction];
     }
 }
 
@@ -311,6 +311,36 @@
                 break;
             }
             dispatch_semaphore_signal(semaphore);
+        }
+    };
+    
+    dispatch_async(dispatch_get_global_queue(DISPATCH_QUEUE_PRIORITY_DEFAULT, 0), ^{
+        TestMethod();
+    });
+    
+    dispatch_async(dispatch_get_global_queue(DISPATCH_QUEUE_PRIORITY_DEFAULT, 0), ^{
+        TestMethod();
+    });
+}
+
+- (void)spinAction {
+    __block int tickets = 5;
+    
+    OSSpinLock spinlock = OS_SPINLOCK_INIT;
+    
+    void(^TestMethod)(void) = ^() {
+        while (YES) {
+            OSSpinLockLock(&spinlock);
+            if (tickets > 0) {
+                tickets --;
+                NSLog(@"value = %d, %@",tickets,[NSThread currentThread]);
+                [NSThread sleepForTimeInterval:1];
+            }
+            else {
+                NSLog(@"Done %@",[NSThread currentThread]);
+                break;
+            }
+            OSSpinLockUnlock(&spinlock);
         }
     };
     
